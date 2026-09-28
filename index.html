@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>pH-Universalindikator</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #eef2ff, #f8fafc);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+}
+
+.container {
+    width: 100%;
+    max-width: 750px;
+    background: white;
+    padding: 35px;
+    border-radius: 25px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.12);
+}
+
+h1 {
+    margin-top: 0;
+    font-size: 30px;
+    color: #222;
+}
+
+.untertitel {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.ph-anzeige {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 10px;
+}
+
+.status {
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.farbfeld {
+    width: 180px;
+    height: 110px;
+    margin: 10px auto 30px;
+    border-radius: 20px;
+    border: 3px solid #333;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    transition: background-color 0.15s;
+}
+
+input[type="range"] {
+    width: 100%;
+    height: 12px;
+    cursor: pointer;
+}
+
+.skala {
+    position: relative;
+    margin-top: 25px;
+}
+
+.farbverlauf {
+    height: 45px;
+    border-radius: 12px;
+    background: linear-gradient(
+        to right,
+        #d90000 0%,
+        #ff4500 14%,
+        #ff9900 28%,
+        #ffff00 42%,
+        #66bb44 50%,
+        #00aa88 58%,
+        #00aaff 70%,
+        #0066ff 82%,
+        #5533aa 92%,
+        #800080 100%
+    );
+}
+
+.marker {
+    position: absolute;
+    top: -8px;
+    width: 5px;
+    height: 61px;
+    background: #111;
+    border-radius: 5px;
+    transform: translateX(-50%);
+    transition: left 0.15s;
+}
+
+.zahlen {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
+.info {
+    margin-top: 30px;
+    padding: 18px;
+    background: #f7f7f7;
+    border-radius: 15px;
+    color: #555;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1> Universalindikator pH-Skala</h1>
+
+    <div class="untertitel">
+        Stelle einen pH-Wert zwischen 0,0 und 14,0 ein.
+    </div>
+
+    <div class="ph-anzeige" id="ph">
+        pH 7,0
+    </div>
+
+    <div class="status" id="status">
+        neutral
+    </div>
+
+    <div class="farbfeld" id="farbfeld"></div>
+
+    <input
+        type="range"
+        id="slider"
+        min="0"
+        max="14"
+        step="0.1"
+        value="7"
+    >
+
+    <div class="skala">
+
+        <div class="farbverlauf"></div>
+
+        <div
+            class="marker"
+            id="marker">
+        </div>
+
+        <div class="zahlen">
+            <span>0</span>
+            <span>2</span>
+            <span>4</span>
+            <span>6</span>
+            <span>7</span>
+            <span>8</span>
+            <span>10</span>
+            <span>12</span>
+            <span>14</span>
+        </div>
+
+    </div>
+
+    <div class="info" id="info">
+        pH 7,0 ist neutral.
+    </div>
+
+</div>
+
+
+<script>
+
+const slider = document.getElementById("slider");
+const phAnzeige = document.getElementById("ph");
+const status = document.getElementById("status");
+const farbfeld = document.getElementById("farbfeld");
+const marker = document.getElementById("marker");
+const info = document.getElementById("info");
+
+
+/*
+   Farben des Universalindikators.
+   Die Farben sind eine vereinfachte Darstellung.
+*/
+
+function pHfarbe(ph) {
+
+    const farben = [
+        "#d90000",
+        "#e51c00",
+        "#f45100",
+        "#ff7300",
+        "#ff9900",
+        "#ffcc00",
+        "#ffff00",
+        "#aacc44",
+        "#66bb44",
+        "#00aa66",
+        "#00aa88",
+        "#00bbaa",
+        "#00aaff",
+        "#0088ff",
+        "#0066ff",
+        "#2255dd",
+        "#4433bb",
+        "#5533aa",
+        "#663399",
+        "#703399",
+        "#800080"
+    ];
+
+    const index = Math.round((ph / 14) * (farben.length - 1));
+
+    return farben[index];
+}
+
+
+function aktualisieren() {
+
+    const wert = parseFloat(slider.value);
+
+    /*
+       Kommazahl anzeigen
+    */
+
+    const angezeigt =
+        wert.toFixed(1).replace(".", ",");
+
+    phAnzeige.textContent =
+        "pH " + angezeigt;
+
+
+    /*
+       Farbe bestimmen
+    */
+
+    const farbe = pHfarbe(wert);
+
+    farbfeld.style.backgroundColor = farbe;
+
+
+    /*
+       Position des Markers
+    */
+
+    const position = (wert / 14) * 100;
+
+    marker.style.left = position + "%";
+
+
+    /*
+       Sauer / neutral / basisch
+    */
+
+    if (wert < 7) {
+
+        status.textContent = "sauer";
+
+        status.style.backgroundColor = "#ffe0e0";
+        status.style.color = "#b00000";
+
+        info.textContent =
+            "pH " + angezeigt +
+            " ist sauer.";
+
+    }
+
+    else if (wert === 7) {
+
+        status.textContent = "neutral";
+
+        status.style.backgroundColor = "#dcf5df";
+        status.style.color = "#08751c";
+
+        info.textContent =
+            "pH " + angezeigt +
+            " ist neutral.";
+
+    }
+
+    else {
+
+        status.textContent = "basisch";
+
+        status.style.backgroundColor = "#dcecff";
+        status.style.color = "#0055aa";
+
+        info.textContent =
+            "pH " + angezeigt +
+            " ist basisch.";
+    }
+}
+
+
+/*
+   Wird aufgerufen, sobald der Regler bewegt wird.
+*/
+
+slider.addEventListener("input", aktualisieren);
+
+
+/*
+   Startwert anzeigen.
+*/
+
+aktualisieren();
+
+</script>
+
+</body>
+</html>
